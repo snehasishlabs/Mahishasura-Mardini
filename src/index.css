@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-gold-glow: rgba(255, 215, 0, 0.4);
+    --color-divine-red: #8B0000;
+  }
+
+  body {
+    background-color: #0a090d;
+    color: #fef3c7;
+    font-family: 'Noto Serif Bengali', 'Tiro Bangla', serif;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+  }
+
+  #root {
+    width: 100%;
+    min-height: 100vh;
+  }
+}
+
+.font-bengali {
+  font-family: 'Noto Serif Bengali', 'Tiro Bangla', serif;
+}
+
+.font-tiro {
+  font-family: 'Tiro Bangla', 'Noto Serif Bengali', serif;
+}
+
+.font-cinzel {
+  font-family: 'Cinzel', serif;
+}
+
+.text-gold-gradient {
+  background: linear-gradient(135deg, #FFF5C0 0%, #F59E0B 50%, #D97706 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-divine-glow {
+  text-shadow: 0 0 20px rgba(251, 191, 36, 0.6), 0 0 40px rgba(217, 119, 6, 0.3);
+}
+
+.box-gold-glow {
+  box-shadow: 0 0 30px rgba(245, 158, 11, 0.25), inset 0 0 15px rgba(251, 191, 36, 0.15);
+}
+
+.glow-lotus {
+  filter: drop-shadow(0 0 25px rgba(251, 191, 36, 0.6)) drop-shadow(0 0 50px rgba(217, 119, 6, 0.3));
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0a090d;
+}
+::-webkit-scrollbar-thumb {
+  background: #78350f;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #d97706;
+}
+
+/* Animations */
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.03); }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 4s ease-in-out infinite;
+}
+
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-float {
+  animation: float-gentle 6s ease-in-out infinite;
+}
