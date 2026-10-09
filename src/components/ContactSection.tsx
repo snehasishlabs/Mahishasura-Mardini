@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Mail } from 'lucide-react';
 
 // Official LinkedIn Brand Vector Icon
 const LinkedinIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
@@ -46,7 +47,7 @@ export const ContactSection: React.FC = () => {
         {/* Decorative Minimal Divider Line */}
         <div className="w-10 h-px bg-gradient-to-r from-transparent via-amber-400/40 to-transparent" />
 
-        {/* Social Media Links Container */}
+        {/* Social Media & Contact Links Container */}
         <div className="flex items-center justify-center gap-5 sm:gap-6 pt-1">
           {/* LinkedIn Link */}
           <a
@@ -72,6 +73,17 @@ export const ContactSection: React.FC = () => {
           >
             <GithubIcon className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
             <span className="sr-only">Visit my GitHub profile</span>
+          </a>
+
+          {/* Email Link */}
+          <a
+            href="mailto:snehasish05.work@gmail.com"
+            aria-label="Send me an email (snehasish05.work@gmail.com)"
+            title="Send Email (snehasish05.work@gmail.com)"
+            className="group relative p-3.5 sm:p-4 rounded-full border border-amber-500/30 bg-amber-950/30 text-amber-200/80 transition-all duration-300 hover:border-amber-400 hover:text-amber-100 hover:bg-amber-900/40 hover:shadow-[0_0_20px_rgba(251,191,36,0.35)] focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a090d] active:scale-95"
+          >
+            <Mail className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
+            <span className="sr-only">Send me an email (snehasish05.work@gmail.com)</span>
           </a>
         </div>
       </motion.div>
