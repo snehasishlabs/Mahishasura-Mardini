@@ -36,6 +36,15 @@ export function App() {
     // Update scroll progress state for scroll visual prompt hint
     setScrollProgress(progress);
 
+    // Hide floating description card when scrolling into the ending screen / About section
+    if (progress >= 0.94 || time >= 90.5) {
+      if (lastSegmentIdRef.current !== 999) {
+        lastSegmentIdRef.current = 999;
+        setCurrentTime(96.0);
+      }
+      return;
+    }
+
     // Requirement 4: Descriptions update ONLY when entering a new timeline segment
     const segment = STORY_TIMELINE.find(
       (s) => time >= s.startTime && time <= s.endTime
