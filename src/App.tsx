@@ -4,6 +4,7 @@ import { StoryCanvasVideo } from './components/StoryCanvasVideo';
 import { DescriptionOverlay } from './components/DescriptionOverlay';
 import { AudioController } from './components/AudioController';
 import { AboutSection } from './components/AboutSection';
+import { ContactSection } from './components/ContactSection';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { STORY_TIMELINE } from './data/storyTimeline';
@@ -115,6 +116,9 @@ export function App() {
 
         {/* 4. About Section - Appears naturally after 96-second scroll story */}
         <AboutSection />
+
+        {/* 5. Contact Section - Appears directly below About Section */}
+        <ContactSection />
       </div>
     </main>
   );
