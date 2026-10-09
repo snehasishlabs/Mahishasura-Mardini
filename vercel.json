@@ -5,7 +5,7 @@
   "cleanUrls": true,
   "headers": [
     {
-      "source": "/(video1|video2|video3|chandi-path|loading-background|closed-lotus|open-lotus).(mp4|mp3|webp|png)",
+      "source": "/(video1|video2|video3|chandi-path|new-chandi-path|audio/.*|loading-background|closed-lotus|open-lotus).(mp4|mp3|webp|png)",
       "headers": [
         {
           "key": "Cache-Control",

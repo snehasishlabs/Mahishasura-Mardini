@@ -3,15 +3,26 @@ import { spiritualAudioEngine } from './audioSynth';
 
 let chandiAudioInstance: HTMLAudioElement | null = null;
 
+const AUDIO_SRC = '/audio/new-chandi-path.mp3';
+
 /**
  * Requirement 1 & 2: Create audio element during page initialization & preload audio
  */
 export const getChandiAudioInstance = (): HTMLAudioElement => {
   if (!chandiAudioInstance && typeof window !== 'undefined') {
-    chandiAudioInstance = new Audio('/chandi-path.mp3');
+    chandiAudioInstance = new Audio(AUDIO_SRC);
     chandiAudioInstance.id = 'chandi-path-audio';
     chandiAudioInstance.loop = true;
     chandiAudioInstance.preload = 'auto';
+
+    // Requirement 8: Handle audio loading and playback errors gracefully
+    chandiAudioInstance.addEventListener('error', (e) => {
+      console.error(
+        `[Audio Error] Failed to load Chandi Path audio from "${AUDIO_SRC}". ` +
+        `Please check if the file exists in public/audio/ and is a supported MP4/MP3 format.`,
+        e
+      );
+    });
   }
   return chandiAudioInstance!;
 };
@@ -32,7 +43,7 @@ export const playChandiPathDirectly = (): HTMLAudioElement => {
     try {
       audio.currentTime = 0;
     } catch (err) {
-      console.error("Setting currentTime failed", err);
+      console.error("Setting audio currentTime failed", err);
     }
 
     const playPromise = audio.play();
@@ -40,10 +51,10 @@ export const playChandiPathDirectly = (): HTMLAudioElement => {
     if (playPromise !== undefined) {
       playPromise
         .then(() => {
-          console.log("Audio started");
+          console.log("Chandi Path audio started successfully");
         })
         .catch((err) => {
-          console.error("Playback failed", err);
+          console.error("Chandi Path audio playback failed:", err);
         });
     }
   };
@@ -58,7 +69,7 @@ export const playChandiPathDirectly = (): HTMLAudioElement => {
     playAudioNow();
   }
 
-  // Also start Web Audio synth engine
+  // Also start Web Audio synth engine fallback
   try {
     spiritualAudioEngine.start();
   } catch {
