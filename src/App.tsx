@@ -5,6 +5,7 @@ import { DescriptionOverlay } from './components/DescriptionOverlay';
 import { AudioController } from './components/AudioController';
 import { AboutSection } from './components/AboutSection';
 import { ContactSection } from './components/ContactSection';
+import { FeedbackSection } from './components/FeedbackSection';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { STORY_TIMELINE } from './data/storyTimeline';
@@ -119,6 +120,9 @@ export function App() {
 
         {/* 5. Contact Section - Appears directly below About Section */}
         <ContactSection />
+
+        {/* 6. Feedback Section - Embedded Jotform form immediately after Contact Section */}
+        <FeedbackSection />
       </div>
     </main>
   );
