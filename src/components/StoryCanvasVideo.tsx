@@ -30,11 +30,20 @@ export const StoryCanvasVideo: React.FC<StoryCanvasVideoProps> = ({
   const [video2Loaded, setVideo2Loaded] = useState<boolean>(false);
   const [video3Loaded, setVideo3Loaded] = useState<boolean>(false);
 
-  // UseRef for active video index to eliminate 60 FPS React re-renders during scroll
+  // Active video index ref to eliminate 60 FPS React re-renders during scroll
   const activeVideoIndexRef = useRef<number>(0);
+  const isTouchDeviceRef = useRef<boolean>(false);
 
   const targetTimeRef = useRef<number>(0);
   const currentTimeRef = useRef<number>(0);
+
+  // Detect touch device capabilities once on mount
+  useEffect(() => {
+    isTouchDeviceRef.current =
+      'ontouchstart' in window ||
+      navigator.maxTouchPoints > 0 ||
+      window.matchMedia('(pointer: coarse)').matches;
+  }, []);
 
   // Helper to update video DOM visibility directly without triggering React re-renders
   const updateVideoDOMVisibility = useCallback((activeIndex: number) => {
@@ -108,7 +117,8 @@ export const StoryCanvasVideo: React.FC<StoryCanvasVideoProps> = ({
       end: 'bottom bottom',
       pin: viewport,
       pinSpacing: false,
-      scrub: 0.05,
+      // Minimal scrub lag on touch to closely follow user finger movements
+      scrub: isTouchDeviceRef.current ? 0.01 : 0.05,
       onUpdate: (self) => {
         const progress = self.progress;
         const calculatedTime = progress * duration;
@@ -133,18 +143,7 @@ export const StoryCanvasVideo: React.FC<StoryCanvasVideoProps> = ({
     const width = canvas.width || window.innerWidth;
     const height = canvas.height || window.innerHeight;
 
-    const activeVideoLoaded =
-      (activeVideoIndexRef.current === 0 && video1Loaded) ||
-      (activeVideoIndexRef.current === 1 && video2Loaded) ||
-      (activeVideoIndexRef.current === 2 && video3Loaded);
-
     ctx.clearRect(0, 0, width, height);
-
-    if (activeVideoLoaded) {
-      ctx.fillStyle = '#0a090d';
-      ctx.fillRect(0, 0, width, height);
-      return;
-    }
 
     const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
     if (time <= 9) {
@@ -176,12 +175,13 @@ export const StoryCanvasVideo: React.FC<StoryCanvasVideoProps> = ({
 
     ctx.fillStyle = bgGradient;
     ctx.fillRect(0, 0, width, height);
-  }, [video1Loaded, video2Loaded, video3Loaded]);
+  }, []);
 
   // Helper for performing efficient non-thrashing video seeking
   const safeSeek = useCallback((video: HTMLVideoElement | null, targetLocalTime: number) => {
     if (!video || video.seeking) return;
-    if (Math.abs(video.currentTime - targetLocalTime) > 0.04) {
+    const seekThreshold = isTouchDeviceRef.current ? 0.05 : 0.04;
+    if (Math.abs(video.currentTime - targetLocalTime) > seekThreshold) {
       try {
         if ('fastSeek' in video && typeof (video as any).fastSeek === 'function') {
           (video as any).fastSeek(targetLocalTime);
@@ -198,7 +198,9 @@ export const StoryCanvasVideo: React.FC<StoryCanvasVideoProps> = ({
 
     const updateRender = () => {
       // Lerp master target time (0s to 96s)
-      currentTimeRef.current += (targetTimeRef.current - currentTimeRef.current) * 0.25;
+      // Faster lerp factor (0.45) on touch devices to follow finger touch swiping smoothly
+      const lerpFactor = isTouchDeviceRef.current ? 0.45 : 0.25;
+      currentTimeRef.current += (targetTimeRef.current - currentTimeRef.current) * lerpFactor;
       const t = Math.max(0, Math.min(duration, currentTimeRef.current));
 
       let nextActiveIndex = 0;
@@ -250,7 +252,16 @@ export const StoryCanvasVideo: React.FC<StoryCanvasVideoProps> = ({
         }
       }
 
-      renderCanvasScene(t);
+      // Only render canvas fallback when active video is not loaded (saves GPU cycles)
+      const activeLoaded =
+        (activeVideoIndexRef.current === 0 && video1Loaded) ||
+        (activeVideoIndexRef.current === 1 && video2Loaded) ||
+        (activeVideoIndexRef.current === 2 && video3Loaded);
+
+      if (!activeLoaded) {
+        renderCanvasScene(t);
+      }
+
       animFrameId = requestAnimationFrame(updateRender);
     };
 
@@ -268,10 +279,10 @@ export const StoryCanvasVideo: React.FC<StoryCanvasVideoProps> = ({
       ref={containerRef}
       className="relative w-full h-[1200vh] bg-[#0a090d]"
     >
-      {/* GSAP ScrollTrigger Pinned Viewport (100vh Fullscreen) */}
+      {/* GSAP ScrollTrigger Pinned Viewport (Support dynamic 100dvh on mobile) */}
       <div
         ref={viewportRef}
-        className="w-full h-screen overflow-hidden flex items-center justify-center bg-[#0a090d]"
+        className="w-full h-screen h-[100dvh] overflow-hidden flex items-center justify-center bg-[#0a090d]"
       >
         {/* Video 1 Element (0s - 32s) - Hardware Accelerated GPU Layer */}
         <video
@@ -281,7 +292,7 @@ export const StoryCanvasVideo: React.FC<StoryCanvasVideoProps> = ({
           muted
           preload="auto"
           style={{ willChange: 'opacity', transform: 'translateZ(0)', opacity: 1, zIndex: 10 }}
-          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ease-out pointer-events-none"
+          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-150 ease-out pointer-events-none"
         />
 
         {/* Video 2 Element (32s - 63s) - Eagerly Preloaded */}
@@ -292,7 +303,7 @@ export const StoryCanvasVideo: React.FC<StoryCanvasVideoProps> = ({
           muted
           preload="auto"
           style={{ willChange: 'opacity', transform: 'translateZ(0)', opacity: 0, zIndex: 0 }}
-          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ease-out pointer-events-none"
+          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-150 ease-out pointer-events-none"
         />
 
         {/* Video 3 Element (63s - 96s) - Eagerly Preloaded */}
@@ -303,13 +314,13 @@ export const StoryCanvasVideo: React.FC<StoryCanvasVideoProps> = ({
           muted
           preload="auto"
           style={{ willChange: 'opacity', transform: 'translateZ(0)', opacity: 0, zIndex: 0 }}
-          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ease-out pointer-events-none"
+          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-150 ease-out pointer-events-none"
         />
 
         {/* Fallback & Layered Canvas Visual Renderer */}
         <canvas
           ref={canvasRef}
-          className={`absolute inset-0 w-full h-full object-cover pointer-events-none transition-opacity duration-700 ${
+          className={`absolute inset-0 w-full h-full object-cover pointer-events-none transition-opacity duration-500 ${
             isAnyVideoLoaded ? 'z-0 opacity-0' : 'z-20 opacity-100'
           }`}
         />

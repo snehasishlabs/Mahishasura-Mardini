@@ -149,16 +149,16 @@ export const AudioController: React.FC<AudioControllerProps> = ({
   };
 
   return (
-    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 flex items-center gap-2 pointer-events-auto">
+    <div className="fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-40 flex items-center gap-2 pointer-events-auto">
       {/* Minimal Semi-Transparent Floating Audio Controller */}
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.3 }}
-        className="flex items-center gap-2.5 sm:gap-3 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full bg-black/75 sm:bg-black/60 backdrop-blur-md border border-amber-500/30 shadow-[0_4px_25px_rgba(0,0,0,0.85)] select-none text-amber-100"
+        className="flex items-center gap-2 sm:gap-3 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full bg-black/85 sm:bg-black/60 backdrop-blur-none sm:backdrop-blur-md border border-amber-500/30 shadow-[0_4px_25px_rgba(0,0,0,0.85)] select-none text-amber-100"
       >
         {/* Animated Equalizer Sound Bar */}
-        <div className="flex items-center gap-0.9 h-3.5 w-4">
+        <div className="flex items-center gap-0.9 h-3.5 w-4 ml-1">
           {[0, 1, 2, 3].map((bar) => (
             <motion.span
               key={bar}
@@ -187,11 +187,11 @@ export const AudioController: React.FC<AudioControllerProps> = ({
           </span>
         </div>
 
-        {/* Play / Pause Toggle Button */}
+        {/* Play / Pause Toggle Button - 44px touch target on mobile */}
         <button
           onClick={togglePlay}
           aria-label={isPlaying ? 'Pause Chandi Path' : 'Play Chandi Path'}
-          className="p-2 sm:p-1.5 rounded-full bg-amber-500/25 hover:bg-amber-500/40 text-amber-300 transition-all duration-300 border border-amber-400/40 cursor-pointer active:scale-95"
+          className="min-w-[40px] min-h-[40px] sm:min-w-0 sm:min-h-0 p-2 sm:p-1.5 rounded-full bg-amber-500/25 hover:bg-amber-500/40 text-amber-300 transition-all duration-300 border border-amber-400/40 cursor-pointer active:scale-95 flex items-center justify-center"
         >
           {isPlaying ? (
             <Pause className="w-3.5 h-3.5 fill-amber-300 text-amber-300" />
@@ -200,11 +200,11 @@ export const AudioController: React.FC<AudioControllerProps> = ({
           )}
         </button>
 
-        {/* Mute Toggle Button */}
+        {/* Mute Toggle Button - 44px touch target on mobile */}
         <button
           onClick={toggleMute}
           aria-label={isMuted ? 'Unmute Audio' : 'Mute Audio'}
-          className="p-2 sm:p-1.5 rounded-full hover:bg-amber-500/20 text-amber-400/80 transition-colors cursor-pointer active:scale-95"
+          className="min-w-[40px] min-h-[40px] sm:min-w-0 sm:min-h-0 p-2 sm:p-1.5 rounded-full hover:bg-amber-500/20 text-amber-400/80 transition-colors cursor-pointer active:scale-95 flex items-center justify-center"
         >
           {isMuted ? (
             <VolumeX className="w-3.5 h-3.5 text-red-400" />
@@ -216,4 +216,3 @@ export const AudioController: React.FC<AudioControllerProps> = ({
     </div>
   );
 };
-

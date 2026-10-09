@@ -41,7 +41,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onStartJourney }) 
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 1.2, ease: 'easeInOut' }}
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden bg-[#0a090d] select-none"
+          className="fixed inset-0 h-[100dvh] z-50 flex flex-col items-center justify-center overflow-hidden bg-[#0a090d] select-none"
         >
           {/* 1. Fullscreen Autumn Bengal Loading Background */}
           <div className="absolute inset-0 z-0">
@@ -71,7 +71,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onStartJourney }) 
           <div className="relative z-20 flex flex-col items-center justify-center px-4 text-center max-w-3xl w-full">
             
             {/* Centerpiece Lotus Container with Blend Mode */}
-            <div className="relative w-52 h-52 sm:w-80 sm:h-80 md:w-96 md:h-96 flex items-center justify-center mb-4 sm:mb-6">
+            <div className="relative w-44 h-44 sm:w-80 sm:h-80 md:w-96 md:h-96 flex items-center justify-center mb-3 sm:mb-6">
               
               {/* Subtle Golden Radial Glow Effect */}
               <motion.div
@@ -94,7 +94,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onStartJourney }) 
                 }}
                 transition={{ duration: 1.8, ease: 'easeInOut' }}
                 style={{ mixBlendMode: 'multiply' }}
-                className="absolute w-44 h-44 sm:w-64 sm:h-64 md:w-80 md:h-80 object-contain pointer-events-none filter contrast-125 brightness-110 drop-shadow-[0_0_20px_rgba(245,158,11,0.5)]"
+                className="absolute w-36 h-36 sm:w-64 sm:h-64 md:w-80 md:h-80 object-contain pointer-events-none filter contrast-125 brightness-110 drop-shadow-[0_0_20px_rgba(245,158,11,0.5)]"
               />
 
               {/* 3. Bloomed Open Lotus (crossfades & scales in with golden glow) */}
@@ -111,7 +111,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onStartJourney }) 
                   scale: bloomed ? { duration: 6, repeat: Infinity, ease: 'easeInOut' } : { duration: 1.8 }
                 }}
                 style={{ mixBlendMode: 'multiply' }}
-                className="absolute w-48 h-48 sm:w-72 sm:h-72 md:w-88 md:h-88 object-contain pointer-events-none filter contrast-125 brightness-110 drop-shadow-[0_0_35px_rgba(251,191,36,0.7)]"
+                className="absolute w-40 h-40 sm:w-72 sm:h-72 md:w-88 md:h-88 object-contain pointer-events-none filter contrast-125 brightness-110 drop-shadow-[0_0_35px_rgba(251,191,36,0.7)]"
               />
             </div>
 
@@ -122,10 +122,10 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onStartJourney }) 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 1.2, delay: 0.3 }}
-                  className="flex flex-col items-center space-y-4 sm:space-y-6 w-full"
+                  className="flex flex-col items-center space-y-3 sm:space-y-6 w-full"
                 >
                   {/* Single Centered Responsive Title */}
-                  <h1 className="text-2xl sm:text-5xl md:text-7xl font-bold font-cinzel tracking-wider text-center text-[#FFFDF7] drop-shadow-[0_0_25px_rgba(251,191,36,0.5)] select-none px-2 leading-tight">
+                  <h1 className="text-xl sm:text-5xl md:text-7xl font-bold font-cinzel tracking-wider text-center text-[#FFFDF7] drop-shadow-[0_0_25px_rgba(251,191,36,0.5)] select-none px-2 leading-tight">
                     Mahishasura Mardini
                   </h1>
 
@@ -137,7 +137,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onStartJourney }) 
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 1.0, delay: 0.8 }}
-                    className="group relative inline-flex items-center gap-2.5 sm:gap-3 px-6 py-3.5 sm:px-9 sm:py-4 overflow-hidden rounded-full border border-amber-400/50 bg-gradient-to-r from-amber-950/80 via-amber-900/90 to-amber-950/80 text-amber-100 font-cinzel text-sm sm:text-lg font-semibold tracking-wider shadow-2xl backdrop-blur-md transition-all duration-300 hover:border-amber-300 hover:text-white cursor-pointer active:scale-95"
+                    className="group relative inline-flex items-center gap-2 sm:gap-3 px-5 py-3 sm:px-9 sm:py-4 overflow-hidden rounded-full border border-amber-400/50 bg-gradient-to-r from-amber-950/80 via-amber-900/90 to-amber-950/80 text-amber-100 font-cinzel text-xs sm:text-lg font-semibold tracking-wider shadow-2xl backdrop-blur-md transition-all duration-300 hover:border-amber-300 hover:text-white cursor-pointer active:scale-95 min-h-[44px]"
                   >
                     {/* Glowing Shimmer Effect */}
                     <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-amber-400/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
@@ -152,7 +152,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onStartJourney }) 
           </div>
 
           {/* Minimal Immersive Hint */}
-          <div className="absolute bottom-4 sm:bottom-6 text-[10px] sm:text-xs text-amber-400/40 font-cinzel tracking-[0.2em] sm:tracking-[0.3em] uppercase text-center px-4">
+          <div className="absolute bottom-3 sm:bottom-6 text-[9px] sm:text-xs text-amber-400/40 font-cinzel tracking-[0.2em] sm:tracking-[0.3em] uppercase text-center px-4">
             Scroll To Control The Celestial Timeline
           </div>
         </motion.div>
@@ -164,7 +164,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onStartJourney }) 
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 1.0 }}
-          className="fixed inset-0 z-50 bg-[#0a090d] flex items-center justify-center pointer-events-none"
+          className="fixed inset-0 h-[100dvh] z-50 bg-[#0a090d] flex items-center justify-center pointer-events-none"
         >
           <div className="w-full h-full bg-gradient-to-b from-amber-500/20 via-amber-300/40 to-[#0a090d] blur-xl" />
         </motion.div>

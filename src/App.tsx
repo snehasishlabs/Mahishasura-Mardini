@@ -91,20 +91,20 @@ export function App() {
           />
         </div>
 
-        {/* Scroll Prompt Visual Hint */}
+        {/* Scroll Prompt Visual Hint - Top position clear of lower-third description cards */}
         <AnimatePresence>
           {hasStarted && showScrollHint && (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="fixed bottom-12 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2 text-amber-300/80 pointer-events-none"
+              exit={{ opacity: 0, y: -10 }}
+              className="fixed top-14 sm:top-20 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-1.5 text-amber-300/80 pointer-events-none"
             >
-              <span className="text-xs font-cinzel tracking-[0.25em] uppercase">Scroll to Experience Timeline</span>
+              <span className="text-[10px] sm:text-xs font-cinzel tracking-[0.25em] uppercase">Scroll to Experience Timeline</span>
               <motion.div
-                animate={{ y: [0, 8, 0] }}
+                animate={{ y: [0, 6, 0] }}
                 transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-                className="w-5 h-8 rounded-full border-2 border-amber-400/50 flex items-start justify-center p-1"
+                className="w-4 h-7 sm:w-5 sm:h-8 rounded-full border-2 border-amber-400/50 flex items-start justify-center p-1"
               >
                 <div className="w-1 h-2 bg-amber-400 rounded-full" />
               </motion.div>
