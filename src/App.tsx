@@ -36,11 +36,11 @@ export function App() {
     // Update scroll progress state for scroll visual prompt hint
     setScrollProgress(progress);
 
-    // Hide floating description card when scrolling into the ending screen / About section
-    if (progress >= 0.94 || time >= 90.5) {
+    // Hide floating description card ONLY when scrolling past 96s into the About section
+    if (progress >= 0.995 || time >= 96.0) {
       if (lastSegmentIdRef.current !== 999) {
         lastSegmentIdRef.current = 999;
-        setCurrentTime(96.0);
+        setCurrentTime(999.0);
       }
       return;
     }

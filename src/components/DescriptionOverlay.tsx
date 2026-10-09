@@ -8,8 +8,8 @@ interface DescriptionOverlayProps {
 }
 
 export const DescriptionOverlay: React.FC<DescriptionOverlayProps> = memo(({ currentTime }) => {
-  // Hide description overlay when user reaches end of video story (scrolling into ending screen / About section)
-  if (currentTime >= 90.0) {
+  // Hide description overlay when user finishes the 96s video story and scrolls into About section
+  if (currentTime >= 96.0) {
     return null;
   }
 
