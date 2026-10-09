@@ -30,72 +30,89 @@ export const StoryCanvasVideo: React.FC<StoryCanvasVideoProps> = ({
   const [video2Loaded, setVideo2Loaded] = useState<boolean>(false);
   const [video3Loaded, setVideo3Loaded] = useState<boolean>(false);
 
-  // Requirement 2: Staged Video Preloading (V1 immediate, V2 before 25%, V3 before 60%)
-  const [shouldPreloadV2, setShouldPreloadV2] = useState<boolean>(false);
-  const [shouldPreloadV3, setShouldPreloadV3] = useState<boolean>(false);
-
-  // Active Video Index (0: video1 [0-32s], 1: video2 [32-63s], 2: video3 [63-96s])
-  const [activeVideoIndex, setActiveVideoIndex] = useState<number>(0);
+  // UseRef for active video index to eliminate 60 FPS React re-renders during scroll
+  const activeVideoIndexRef = useRef<number>(0);
 
   const targetTimeRef = useRef<number>(0);
   const currentTimeRef = useRef<number>(0);
 
-  // 1. Synchronize Video Loading & Preloading for all 3 videos
-  useEffect(() => {
+  // Helper to update video DOM visibility directly without triggering React re-renders
+  const updateVideoDOMVisibility = useCallback((activeIndex: number) => {
     const v1 = video1Ref.current;
     const v2 = video2Ref.current;
     const v3 = video3Ref.current;
 
     if (v1) {
-      const handleV1 = () => setVideo1Loaded(true);
-      v1.addEventListener('canplaythrough', handleV1);
-      v1.addEventListener('loadeddata', handleV1);
+      v1.style.opacity = activeIndex === 0 ? '1' : '0';
+      v1.style.zIndex = activeIndex === 0 ? '10' : '0';
     }
-
     if (v2) {
-      const handleV2 = () => setVideo2Loaded(true);
-      v2.addEventListener('canplaythrough', handleV2);
-      v2.addEventListener('loadeddata', handleV2);
+      v2.style.opacity = activeIndex === 1 ? '1' : '0';
+      v2.style.zIndex = activeIndex === 1 ? '10' : '0';
     }
-
     if (v3) {
-      const handleV3 = () => setVideo3Loaded(true);
-      v3.addEventListener('canplaythrough', handleV3);
-      v3.addEventListener('loadeddata', handleV3);
+      v3.style.opacity = activeIndex === 2 ? '1' : '0';
+      v3.style.zIndex = activeIndex === 2 ? '10' : '0';
     }
+  }, []);
+
+  // 1. Synchronize Video Preloading & Initial Frame Warmup
+  useEffect(() => {
+    const v1 = video1Ref.current;
+    const v2 = video2Ref.current;
+    const v3 = video3Ref.current;
+
+    const setupVideoListeners = (
+      v: HTMLVideoElement | null,
+      setLoaded: (val: boolean) => void
+    ) => {
+      if (!v) return;
+
+      const handleReady = () => {
+        setLoaded(true);
+        // Pre-seek 0.001s to warm up GPU decoder texture for initial frame
+        if (v.currentTime === 0) {
+          try {
+            v.currentTime = 0.001;
+          } catch { }
+        }
+      };
+
+      v.addEventListener('loadedmetadata', handleReady);
+      v.addEventListener('canplay', handleReady);
+      v.addEventListener('loadeddata', handleReady);
+
+      if (v.readyState >= 1) {
+        handleReady();
+      }
+    };
+
+    setupVideoListeners(v1, setVideo1Loaded);
+    setupVideoListeners(v2, setVideo2Loaded);
+    setupVideoListeners(v3, setVideo3Loaded);
   }, []);
 
   // 2. Setup GSAP ScrollTrigger Pinning timeline across 1200vh
   useEffect(() => {
     const container = containerRef.current;
     const viewport = viewportRef.current;
-    if (!container || !viewport) return;
+    if (!container || !viewport || !isActive) return;
 
-    // Refresh ScrollTrigger after DOM renders
     const refreshTimer = setTimeout(() => {
       ScrollTrigger.refresh();
-    }, 100);
+    }, 150);
 
     const scrollTriggerInstance = ScrollTrigger.create({
       trigger: container,
       start: 'top top',
       end: 'bottom bottom',
       pin: viewport,
-      pinSpacing: false, // Maintain 1200vh container height
-      scrub: 0.05, // Ultra responsive scrub easing
+      pinSpacing: false,
+      scrub: 0.05,
       onUpdate: (self) => {
-        const progress = self.progress; // 0.0 to 1.0
+        const progress = self.progress;
         const calculatedTime = progress * duration;
         targetTimeRef.current = calculatedTime;
-
-        // Trigger staged video preloading before thresholds
-        if (progress >= 0.12 && !shouldPreloadV2) {
-          setShouldPreloadV2(true);
-        }
-        if (progress >= 0.40 && !shouldPreloadV3) {
-          setShouldPreloadV3(true);
-        }
-
         onTimeUpdate(calculatedTime, progress);
       }
     });
@@ -104,9 +121,9 @@ export const StoryCanvasVideo: React.FC<StoryCanvasVideoProps> = ({
       clearTimeout(refreshTimer);
       scrollTriggerInstance.kill();
     };
-  }, [duration, onTimeUpdate, isActive, shouldPreloadV2, shouldPreloadV3]);
+  }, [duration, onTimeUpdate, isActive]);
 
-  // 4. Procedural Canvas Story Scene Renderer
+  // 4. Canvas Fallback Renderer for initial load
   const renderCanvasScene = useCallback((time: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -116,23 +133,20 @@ export const StoryCanvasVideo: React.FC<StoryCanvasVideoProps> = ({
     const width = canvas.width || window.innerWidth;
     const height = canvas.height || window.innerHeight;
 
-    // Requirement 6 & 7: Skip heavy canvas drawing cycles when active video is playing
-    const activeVideoLoaded = (activeVideoIndex === 0 && video1Loaded) ||
-                              (activeVideoIndex === 1 && video2Loaded) ||
-                              (activeVideoIndex === 2 && video3Loaded);
+    const activeVideoLoaded =
+      (activeVideoIndexRef.current === 0 && video1Loaded) ||
+      (activeVideoIndexRef.current === 1 && video2Loaded) ||
+      (activeVideoIndexRef.current === 2 && video3Loaded);
 
     ctx.clearRect(0, 0, width, height);
 
     if (activeVideoLoaded) {
-      // Draw simple solid dark background when video is active (zero canvas CPU draw overhead)
       ctx.fillStyle = '#0a090d';
       ctx.fillRect(0, 0, width, height);
       return;
     }
 
-    // Background Gradient fallback when video is loading
-    let bgGradient = ctx.createLinearGradient(0, 0, 0, height);
-
+    const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
     if (time <= 9) {
       bgGradient.addColorStop(0, '#1E1B18');
       bgGradient.addColorStop(0.5, '#451A03');
@@ -162,7 +176,21 @@ export const StoryCanvasVideo: React.FC<StoryCanvasVideoProps> = ({
 
     ctx.fillStyle = bgGradient;
     ctx.fillRect(0, 0, width, height);
-  }, [activeVideoIndex, video1Loaded, video2Loaded, video3Loaded]);
+  }, [video1Loaded, video2Loaded, video3Loaded]);
+
+  // Helper for performing efficient non-thrashing video seeking
+  const safeSeek = useCallback((video: HTMLVideoElement | null, targetLocalTime: number) => {
+    if (!video || video.seeking) return;
+    if (Math.abs(video.currentTime - targetLocalTime) > 0.04) {
+      try {
+        if ('fastSeek' in video && typeof (video as any).fastSeek === 'function') {
+          (video as any).fastSeek(targetLocalTime);
+        } else {
+          video.currentTime = targetLocalTime;
+        }
+      } catch { }
+    }
+  }, []);
 
   // 3. Smooth Master Timeline Lerp Loop for RAF Video & Canvas Seeking
   useEffect(() => {
@@ -170,7 +198,7 @@ export const StoryCanvasVideo: React.FC<StoryCanvasVideoProps> = ({
 
     const updateRender = () => {
       // Lerp master target time (0s to 96s)
-      currentTimeRef.current += (targetTimeRef.current - currentTimeRef.current) * 0.2;
+      currentTimeRef.current += (targetTimeRef.current - currentTimeRef.current) * 0.25;
       const t = Math.max(0, Math.min(duration, currentTimeRef.current));
 
       let nextActiveIndex = 0;
@@ -191,42 +219,38 @@ export const StoryCanvasVideo: React.FC<StoryCanvasVideoProps> = ({
         localTime = t - 63;
       }
 
-      setActiveVideoIndex(nextActiveIndex);
+      // Update DOM visibility directly if index changed (zero React re-render overhead)
+      if (activeVideoIndexRef.current !== nextActiveIndex) {
+        activeVideoIndexRef.current = nextActiveIndex;
+        updateVideoDOMVisibility(nextActiveIndex);
+      }
 
       // Seek active video & pre-seek adjacent videos for zero seek delay
       if (nextActiveIndex === 0 && video1Ref.current && video1Loaded) {
-        if (Math.abs(video1Ref.current.currentTime - localTime) > 0.03) {
-          try { video1Ref.current.currentTime = localTime; } catch { }
-        }
+        safeSeek(video1Ref.current, localTime);
         // Pre-seek Video 2 to 0s when approaching 32s boundary
-        if (t > 26 && video2Ref.current && video2Loaded && video2Ref.current.currentTime !== 0) {
-          try { video2Ref.current.currentTime = 0; } catch { }
+        if (t > 25 && video2Ref.current && video2Loaded && video2Ref.current.currentTime !== 0) {
+          safeSeek(video2Ref.current, 0.001);
         }
       } else if (nextActiveIndex === 1 && video2Ref.current && video2Loaded) {
-        if (Math.abs(video2Ref.current.currentTime - localTime) > 0.03) {
-          try { video2Ref.current.currentTime = localTime; } catch { }
-        }
+        safeSeek(video2Ref.current, localTime);
         // Pre-seek Video 1 to 32s when near boundary for backward scrolling
         if (t < 34 && video1Ref.current && video1Loaded && Math.abs(video1Ref.current.currentTime - 32) > 0.1) {
-          try { video1Ref.current.currentTime = 32; } catch { }
+          safeSeek(video1Ref.current, 32);
         }
         // Pre-seek Video 3 to 0s when approaching 63s boundary
-        if (t > 57 && video3Ref.current && video3Loaded && video3Ref.current.currentTime !== 0) {
-          try { video3Ref.current.currentTime = 0; } catch { }
+        if (t > 56 && video3Ref.current && video3Loaded && video3Ref.current.currentTime !== 0) {
+          safeSeek(video3Ref.current, 0.001);
         }
       } else if (nextActiveIndex === 2 && video3Ref.current && video3Loaded) {
-        if (Math.abs(video3Ref.current.currentTime - localTime) > 0.03) {
-          try { video3Ref.current.currentTime = localTime; } catch { }
-        }
+        safeSeek(video3Ref.current, localTime);
         // Pre-seek Video 2 to 31s when near boundary for backward scrolling
         if (t < 65 && video2Ref.current && video2Loaded && Math.abs(video2Ref.current.currentTime - 31) > 0.1) {
-          try { video2Ref.current.currentTime = 31; } catch { }
+          safeSeek(video2Ref.current, 31);
         }
       }
 
-      // Render Canvas visual scene only when video is not active to save GPU
       renderCanvasScene(t);
-
       animFrameId = requestAnimationFrame(updateRender);
     };
 
@@ -235,7 +259,7 @@ export const StoryCanvasVideo: React.FC<StoryCanvasVideoProps> = ({
     return () => {
       cancelAnimationFrame(animFrameId);
     };
-  }, [duration, video1Loaded, video2Loaded, video3Loaded, renderCanvasScene]);
+  }, [duration, video1Loaded, video2Loaded, video3Loaded, renderCanvasScene, safeSeek, updateVideoDOMVisibility]);
 
   const isAnyVideoLoaded = video1Loaded || video2Loaded || video3Loaded;
 
@@ -256,36 +280,30 @@ export const StoryCanvasVideo: React.FC<StoryCanvasVideoProps> = ({
           playsInline
           muted
           preload="auto"
-          style={{ willChange: 'opacity', transform: 'translateZ(0)' }}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ease-out ${
-            activeVideoIndex === 0 && video1Loaded ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
-          }`}
+          style={{ willChange: 'opacity', transform: 'translateZ(0)', opacity: 1, zIndex: 10 }}
+          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ease-out pointer-events-none"
         />
 
-        {/* Video 2 Element (32s - 63s) - Preloaded at 15% Scroll */}
+        {/* Video 2 Element (32s - 63s) - Eagerly Preloaded */}
         <video
           ref={video2Ref}
           src="/video2.mp4"
           playsInline
           muted
-          preload={shouldPreloadV2 || activeVideoIndex >= 1 ? "auto" : "metadata"}
-          style={{ willChange: 'opacity', transform: 'translateZ(0)' }}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ease-out ${
-            activeVideoIndex === 1 && video2Loaded ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
-          }`}
+          preload="auto"
+          style={{ willChange: 'opacity', transform: 'translateZ(0)', opacity: 0, zIndex: 0 }}
+          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ease-out pointer-events-none"
         />
 
-        {/* Video 3 Element (63s - 96s) - Preloaded at 40% Scroll */}
+        {/* Video 3 Element (63s - 96s) - Eagerly Preloaded */}
         <video
           ref={video3Ref}
           src="/video3.mp4"
           playsInline
           muted
-          preload={shouldPreloadV3 || activeVideoIndex >= 2 ? "auto" : "metadata"}
-          style={{ willChange: 'opacity', transform: 'translateZ(0)' }}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ease-out ${
-            activeVideoIndex === 2 && video3Loaded ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
-          }`}
+          preload="auto"
+          style={{ willChange: 'opacity', transform: 'translateZ(0)', opacity: 0, zIndex: 0 }}
+          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ease-out pointer-events-none"
         />
 
         {/* Fallback & Layered Canvas Visual Renderer */}
@@ -299,5 +317,3 @@ export const StoryCanvasVideo: React.FC<StoryCanvasVideoProps> = ({
     </div>
   );
 };
-
-

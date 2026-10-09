@@ -13,10 +13,11 @@ import { STORY_TIMELINE } from './data/storyTimeline';
 export function App() {
   const [hasStarted, setHasStarted] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
-  const [scrollProgress, setScrollProgress] = useState<number>(0);
+  const [showScrollHint, setShowScrollHint] = useState<boolean>(true);
 
   const progressBarRef = useRef<HTMLDivElement | null>(null);
   const lastSegmentIdRef = useRef<number>(-1);
+  const showScrollHintRef = useRef<boolean>(true);
 
   // Refresh GSAP ScrollTrigger when user starts journey
   useEffect(() => {
@@ -35,8 +36,14 @@ export function App() {
       progressBarRef.current.style.width = `${progress * 100}%`;
     }
 
-    // Update scroll progress state for scroll visual prompt hint
-    setScrollProgress(progress);
+    // Toggle scroll hint state ONLY when crossing 3% threshold (zero per-frame re-renders)
+    if (progress >= 0.03 && showScrollHintRef.current) {
+      showScrollHintRef.current = false;
+      setShowScrollHint(false);
+    } else if (progress < 0.03 && !showScrollHintRef.current) {
+      showScrollHintRef.current = true;
+      setShowScrollHint(true);
+    }
 
     // Hide floating description card ONLY when scrolling past 96s into the About section
     if (progress >= 0.995 || time >= 96.0) {
@@ -47,7 +54,7 @@ export function App() {
       return;
     }
 
-    // Requirement 4: Descriptions update ONLY when entering a new timeline segment
+    // Update descriptions ONLY when entering a new timeline segment
     const segment = STORY_TIMELINE.find(
       (s) => time >= s.startTime && time <= s.endTime
     );
@@ -86,7 +93,7 @@ export function App() {
 
         {/* Scroll Prompt Visual Hint */}
         <AnimatePresence>
-          {hasStarted && scrollProgress < 0.03 && (
+          {hasStarted && showScrollHint && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -105,7 +112,7 @@ export function App() {
           )}
         </AnimatePresence>
 
-        {/* Story Multi-Video Scrubbing Engine (video1.mp4, video2.mp4, video3.mp4 - 96s total) */}
+        {/* Story Multi-Video Scrubbing Engine (video1_opt.mp4, video2_opt.mp4, video3_opt.mp4 - 96s total) */}
         <StoryCanvasVideo
           duration={96}
           isActive={hasStarted}
